@@ -48,10 +48,10 @@ Backbone.FileModel = (function(_, Backbone) {
         },
 
         sync: function() {
-            // FormData() is only suported with XMLHttpRequest2
+            // FormData() is only supported by XHR2
             var data = new FormData();
 
-            // append all the files, which are registered for each key
+            // append all the files for each key
             // to the FormData-object
             _.each(this.files, function(fileKeyArr, key) {
                 _.each(fileKeyArr, function(file) {
