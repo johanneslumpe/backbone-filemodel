@@ -14,6 +14,11 @@ Backbone.FileModel = (function(_, Backbone) {
 
         addFile: function(key, fileRef) {
             var fileKeyArr;
+
+            if (!key || !fileRef) {
+                throw new TypeError('You need to pass in a key and a file reference');
+            }
+
             // lazily create the files object
             this.files = this.files || {};
 
@@ -26,12 +31,11 @@ Backbone.FileModel = (function(_, Backbone) {
             fileKeyArr = this.files[key];
 
             // now we add all files in the fileRef to the array
-            if (key && fileRef && fileRef.files.length) {
+            if (fileRef.files && fileRef.files.length) {
                 _.each(fileRef.files, function(file) {
                     fileKeyArr.push(file);
                     this.numFiles++;
                 }, this);
-
             }
         },
 
