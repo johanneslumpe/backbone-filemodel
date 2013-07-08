@@ -3,6 +3,11 @@ Backbone.FileModel = (function(_, Backbone) {
     var FileModel = Backbone.Model.extend({
 
         files: null,
+        numFiles: 0,
+
+        // if this is set to true and we have no files added we can
+        // force a fallback to the original backbone sync without formdata,
+        fallbackToNormal: false,
 
         // by default, empty the files array after every sync
         wipeAfterSync: true,
@@ -24,6 +29,7 @@ Backbone.FileModel = (function(_, Backbone) {
             if (key && fileRef && fileRef.files.length) {
                 _.each(fileRef.files, function(file) {
                     fileKeyArr.push(file);
+                    this.numFiles++;
                 }, this);
 
             }
@@ -39,38 +45,48 @@ Backbone.FileModel = (function(_, Backbone) {
             }
         },
 
+        // remove all files or just those for a specific key
         clearFiles: function(key) {
             if (key) {
+                if (this.files[key]) {
+                    this.numFiles -= this.files[key].length;
+                }
                 delete this.files[key];
             } else {
                 this.files = null;
+                this.numFiles = 0;
             }
         },
 
         sync: function() {
-            // FormData() is only supported by XHR2
-            var data = new FormData();
+            // only use formdata if we have files added
+            // or fallbacktoNormal is set to false
+            if (this.numFiles > 0 || !this.fallbackToNormal) {
 
-            // append all the files for each key
-            // to the FormData-object
-            _.each(this.files, function(fileKeyArr, key) {
-                _.each(fileKeyArr, function(file) {
-                    data.append(key, file);
+                // FormData() is only supported by XHR2
+                var data = new FormData();
+
+                // append all the files for each key
+                // to the FormData-object
+                _.each(this.files, function(fileKeyArr, key) {
+                    _.each(fileKeyArr, function(file) {
+                        data.append(key, file);
+                    });
                 });
-            });
 
-            // we also want to submit our normal model data
-            data.append('model', JSON.stringify(this.toJSON()));
+                // we also want to submit our normal model data
+                data.append('model', JSON.stringify(this.toJSON()));
 
-            // add our custom data to the options-object
-            // (not sure if there is a better way)
-            arguments[2].data = data;
-            arguments[2].contentType = false;
-            arguments[2].processData = false;
+                // add our custom data to the options-object
+                // (not sure if there is a better way)
+                arguments[2].data = data;
+                arguments[2].contentType = false;
+                arguments[2].processData = false;
 
-            // clean up the files array, since we don't want to be posting the same data twice
-            if (this.wipeAfterSync) {
-                this.clearFiles();
+                // clean up the files array, since we don't want to be posting the same data twice
+                if (this.wipeAfterSync) {
+                    this.clearFiles();
+                }
             }
 
             // finally just call Backbone.sync normally
