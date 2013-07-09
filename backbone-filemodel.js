@@ -9,6 +9,10 @@ Backbone.FileModel = (function(_, Backbone) {
         // force a fallback to the original backbone sync without formdata,
         fallbackToNormal: false,
 
+        // this setting determines how multiple files for the same key are
+        // named when adding them to the formdata object
+        backendIsPHP: false,
+
         // by default, empty the files array after every sync
         wipeAfterSync: true,
 
@@ -73,10 +77,23 @@ Backbone.FileModel = (function(_, Backbone) {
                 // append all the files for each key
                 // to the FormData-object
                 _.each(this.files, function(fileKeyArr, key) {
+                    var numFiles = fileKeyArr.length;
+
+                    // if we post to node.js with express, multiple files with the same name
+                    // will automatically be converted to an array.
+                    // for php square brackets are needed to get the proper result
+                    if (numFiles > 1) {
+                        key = this.backendIsPHP ? key + '[]' : key;
+                    } else {
+                        // for a single file we always need to use square brackets
+                        // so we can expect to always have an array handed to us
+                        key = key + '[]';
+                    }
+
                     _.each(fileKeyArr, function(file) {
                         data.append(key, file);
                     });
-                });
+                }, this);
 
                 // we also want to submit our normal model data
                 data.append('model', JSON.stringify(this.toJSON()));
