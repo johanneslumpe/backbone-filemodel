@@ -16,6 +16,19 @@ Backbone.FileModel = (function(_, Backbone) {
         // by default, empty the files array after every sync
         wipeAfterSync: true,
 
+        // the maximum number of files allowed to add to the model, 0 corresponds to unlimited
+        maxNumFiles: 0,
+
+        // the maximum filesize for each file in bytes, 0 corresponds to unlimited
+        maxSizeSingle: 0,
+
+        // the maximum filesize for all files combined in bytes, 0 corresponds to unlimited
+        maxSizeTotal: 0,
+
+        // when a file violates the maxSizeSingle rule, it will be stored in an array
+        // which will be assigned to this property after validate() has been called
+        offendingFiles: null,
+
         addFile: function(key, fileRef) {
             var fileKeyArr;
 
@@ -63,6 +76,45 @@ Backbone.FileModel = (function(_, Backbone) {
             } else {
                 this.files = null;
                 this.numFiles = 0;
+            }
+        },
+
+        validate: function() {
+            var maxNumFiles = this.maxNumFiles,
+                maxSizeSingle = this.maxSizeSingle,
+                maxSizeTotal = this.maxSizeTotal,
+                curFileCount = 0,
+                curMaxSizeSingle = 0,
+                curMaxSizeTotal = 0;
+
+            this.offendingFiles = [];
+
+            _.each(this.files, function(fileKeyArr, key) {
+                curFileCount += fileKeyArr.length;
+
+                _.each(fileKeyArr, function(file) {
+                    var fileSize = file.size;
+                    if (maxSizeSingle && fileSize > maxSizeSingle) {
+                        if (fileSize > curMaxSizeSingle) {
+                            this.offendingFiles.push(file);
+                        }
+                        curMaxSizeSingle = fileSize;
+                    }
+
+                    curMaxSizeTotal += fileSize;
+                }, this);
+            }, this);
+
+            if (maxNumFiles && curFileCount > maxNumFiles) {
+                return 'invalid_max_num_files';
+            }
+
+            if (maxSizeSingle && curMaxSizeSingle > maxSizeSingle) {
+                return 'invalid_max_file_size_single';
+            }
+
+            if (maxSizeTotal && curMaxSizeTotal > maxSizeTotal) {
+                return 'invalid_max_file_size_total';
             }
         },
 
