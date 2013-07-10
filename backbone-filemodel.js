@@ -11,7 +11,7 @@ Backbone.FileModel = (function(_, Backbone) {
 
         // this setting determines how multiple files for the same key are
         // named when adding them to the formdata object
-        backendIsPHP: false,
+        forceMultiKeyArrayName: false,
 
         // by default, empty the files array after every sync
         wipeAfterSync: true,
@@ -133,9 +133,9 @@ Backbone.FileModel = (function(_, Backbone) {
 
                     // if we post to node.js with express, multiple files with the same name
                     // will automatically be converted to an array.
-                    // for php square brackets are needed to get the proper result
+                    // for php for example square brackets are needed to get the proper result
                     if (numFiles > 1) {
-                        key = this.backendIsPHP ? key + '[]' : key;
+                        key = this.forceMultiKeyArrayName ? key + '[]' : key;
                     } else {
                         // for a single file we always need to use square brackets
                         // so we can expect to always have an array handed to us
