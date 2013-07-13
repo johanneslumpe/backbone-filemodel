@@ -65,3 +65,6 @@
 
 ### filemodel:clearAll
   When `clearFiles()` is called without parameters this event will be triggered.
+
+## License
+  MIT
