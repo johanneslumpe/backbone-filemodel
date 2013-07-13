@@ -14,7 +14,7 @@
   Get the object which holds all the added keys and their associated files.
 
 ### getFiles(key)
-  Get the Array of File-objects for the given key.
+  Get the array of File-objects for `key`.
 
 ### clearFiles()
   Remove all added files from the model.
@@ -26,16 +26,17 @@
   The following properties can be set directly on the model:
 
 ### fallbackToNormal
-  If this is set to true and there are no files added to the model a fallback to the original
+  If this is set to `true` and there are no files added to the model a fallback to the original
   sync method of Backbone without formdata can be forced. The default is `false`.
 
 ### forceMultiKeyArrayName
  This setting determines how multiple files for the same key are named when adding them
- to the formdata object. If set to true, each file for a single key will be added to the formdata
- using `key` + '[]'. This value for this settings depends on your backend. The default is `false`.
+ to the formdata object. If set to `true`, each file for a single key will be added to the formdata
+ using `key + '[]'`. This value for this settings depends on your backend. The default is `false`.
 
 ### wipeAfterSync
-  If set to true, after every sync, all the file references will be removed from the model.
+  If set to `true`, after every sync, all the file references will be removed from the model.
+  If set to `false`, the file reference will not be removed and will be resubmitted on the next sync.
   The default is `true`.
 
 ## Validation
@@ -54,13 +55,13 @@
 ## Events
 
 ### filemodel:add
-  Everytime a file is added to the model, this event will be triggered.
-  It gets passed the key the file was added to and a FileList which contains the
-  added files
+  Everytime a file is added to the model using `addFile(key, fileReference)`,
+  this event will be triggered. It gets passed the key the file was added to and
+  a FileList which contains the added files.
 
 ### filemodel:clear
-  When clearFiles(key) is called this event will be triggered.
-  It gets passed the deleted key.
+  When `clearFiles(key)` is called this event will be triggered.
+  It gets passed the deleted `key`.
 
 ### filemodel:clearAll
-  When clearFiles() is called without parameters this event will be triggered.
+  When `clearFiles()` is called without parameters this event will be triggered.
