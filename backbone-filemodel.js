@@ -5,6 +5,12 @@ Backbone.FileModel = (function(_, Backbone) {
         files: null,
         numFiles: 0,
 
+        // here we will store all the keys we added files to,
+        // so we can iterate over the array and access the key
+        // on the files-object directly, instead of looping through
+        // its properties
+        fileKeys: [],
+
         // if this is set to true and we have no files added we can
         // force a fallback to the original backbone sync without formdata,
         fallbackToNormal: false,
@@ -43,6 +49,7 @@ Backbone.FileModel = (function(_, Backbone) {
             // then we have to create the key's array
             if (!this.files[key]) {
                 this.files[key] = [];
+                this.fileKeys.push(key);
             }
 
             fileKeyArr = this.files[key];
@@ -68,13 +75,22 @@ Backbone.FileModel = (function(_, Backbone) {
 
         // remove all files or just those for a specific key
         clearFiles: function(key) {
+            var keyPos;
             if (key) {
                 if (this.files[key]) {
                     this.numFiles -= this.files[key].length;
+                    delete this.files[key];
+
+                    // using indexOf() here, since using XHR2
+                    // cancels out everything below IE10 anyway.
+                    keyPos = this.fileKeys.indexOf(key);
+                    if (keyPos !== -1) {
+                        this.fileKeys.splice(keyPos, 1);
+                    }
                 }
-                delete this.files[key];
             } else {
                 this.files = null;
+                this.fileKeys = [];
                 this.numFiles = 0;
             }
         },
@@ -89,11 +105,14 @@ Backbone.FileModel = (function(_, Backbone) {
 
             this.offendingFiles = [];
 
-            _.each(this.files, function(fileKeyArr, key) {
+            _.each(this.fileKeys, function(key) {
+                var fileKeyArr = this.files[key];
+
                 curFileCount += fileKeyArr.length;
 
                 _.each(fileKeyArr, function(file) {
                     var fileSize = file.size;
+
                     if (maxSizeSingle && fileSize > maxSizeSingle) {
                         if (fileSize > curMaxSizeSingle) {
                             this.offendingFiles.push(file);
@@ -103,6 +122,7 @@ Backbone.FileModel = (function(_, Backbone) {
 
                     curMaxSizeTotal += fileSize;
                 }, this);
+
             }, this);
 
             if (maxNumFiles && curFileCount > maxNumFiles) {
@@ -128,8 +148,9 @@ Backbone.FileModel = (function(_, Backbone) {
 
                 // append all the files for each key
                 // to the FormData-object
-                _.each(this.files, function(fileKeyArr, key) {
-                    var numFiles = fileKeyArr.length;
+                _.each(this.fileKeys, function(key) {
+                    var fileKeyArr = this.files[key],
+                        numFiles = fileKeyArr.length;
 
                     // if we post to node.js with express, multiple files with the same name
                     // will automatically be converted to an array.
