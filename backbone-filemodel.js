@@ -60,6 +60,8 @@ Backbone.FileModel = (function(_, Backbone) {
                     fileKeyArr.push(file);
                     this.numFiles++;
                 }, this);
+
+                this.trigger('filemodel:add', key, fileRef.files);
             }
         },
 
@@ -87,11 +89,15 @@ Backbone.FileModel = (function(_, Backbone) {
                     if (keyPos !== -1) {
                         this.fileKeys.splice(keyPos, 1);
                     }
+
+                    this.trigger('filemodel:clear', key);
                 }
             } else {
                 this.files = null;
                 this.fileKeys = [];
                 this.numFiles = 0;
+
+                this.trigger('filemodel:clearAll');
             }
         },
 
@@ -186,7 +192,7 @@ Backbone.FileModel = (function(_, Backbone) {
             // finally just call Backbone.sync normally
             return Backbone.sync.apply(this, arguments);
         }
-    });
+    }, Backbone.Events);
 
     return FileModel;
 })(_, Backbone);
